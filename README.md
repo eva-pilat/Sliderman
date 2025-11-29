@@ -33,7 +33,7 @@ A beautiful, highly customizable slider control for iOS with multiple operating 
 Add to your `Package.swift`:
 ```swift
 dependencies: [
-    .package(url: "https://github.com/YOUR_USERNAME/CustomSlider.git", from: "0.1.0")
+    .package(url: "https://github.com/eva-pilat/Sliderman.git", from: "0.1.0")
 ]
 ```
 
@@ -43,7 +43,7 @@ Or in Xcode: **File → Add Packages** → paste the URL: https://github.com/eva
 
 Add to your `Podfile`:
 ```ruby
-pod 'CustomSlider', '~> 0.1.0'
+pod 'Sliderman', '~> 0.1.0'
 ```
 
 Then run:
@@ -55,7 +55,7 @@ pod install
 
 ### Default Mode
 ```swift
-import CustomSlider
+import Sliderman
 
 let slider = CustomSlider()
 slider.setStyle(.ocean)
