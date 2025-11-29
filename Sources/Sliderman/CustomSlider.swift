@@ -281,14 +281,15 @@ open class CustomSlider: UIControl {
             let markContainer = UIView()
             markContainer.backgroundColor = .clear
             markContainer.translatesAutoresizingMaskIntoConstraints = false
+            markContainer.tag = 1000 + i
             insertSubview(markContainer, aboveSubview: trackView)
-
+            
             let markInner = UIView()
             markInner.backgroundColor = .white
             markInner.layer.cornerRadius = (markSize - 4) / 2
             markInner.translatesAutoresizingMaskIntoConstraints = false
             markContainer.addSubview(markInner)
-
+            
             markContainer.layer.cornerRadius = markSize / 2
             markContainer.layer.borderWidth = 2
             markContainer.layer.borderColor = configuration.progressColor?.cgColor ?? UIColor.systemGray.cgColor
@@ -296,9 +297,10 @@ open class CustomSlider: UIControl {
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
+            let centerXConstraint = markContainer.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition)
             
             NSLayoutConstraint.activate([
-                markContainer.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition),
+                centerXConstraint,
                 markContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
                 markContainer.widthAnchor.constraint(equalToConstant: markSize),
                 markContainer.heightAnchor.constraint(equalToConstant: markSize),
@@ -316,6 +318,7 @@ open class CustomSlider: UIControl {
         bringSubviewToFront(thumbView)
         bringSubviewToFront(secondThumbView)
     }
+
     
     private func removeMarks() {
         markViews.forEach { $0.removeFromSuperview() }
@@ -408,19 +411,19 @@ open class CustomSlider: UIControl {
         gradientLayer?.frame = progressView.bounds
         updateThumbPositions(animated: false)
         
-        if case .marked(let count) = mode {
-            if markViews.isEmpty || markViews.count != count {
-                setupMarks(count: count)
-            } else {
-                let trackWidth = bounds.width - configuration.thumbSize
-                for (i, markView) in markViews.enumerated() {
-                    let percentage = CGFloat(i) / CGFloat(count - 1)
-                    let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
-                    
-                    if let constraint = markView.constraints.first(where: {
-                        $0.firstAttribute == .centerX
-                    }) {
+        if case .marked(let count) = mode, markViews.count == count {
+            let trackWidth = bounds.width - configuration.thumbSize
+            
+            for (i, markView) in markViews.enumerated() {
+                let percentage = CGFloat(i) / CGFloat(count - 1)
+                let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
+
+                for constraint in constraints {
+                    if constraint.firstItem as? UIView == markView &&
+                        constraint.firstAttribute == .centerX &&
+                        constraint.secondItem as? UIView == self {
                         constraint.constant = xPosition
+                        break
                     }
                 }
             }
@@ -629,80 +632,4 @@ open class CustomSlider: UIControl {
             }
         )
     }
-    
-    // MARK: - Accessibility
-//    
-//    public override var isAccessibilityElement: Bool {
-//        get { true }
-//        set { }
-//    }
-//    
-//    public override var accessibilityTraits: UIAccessibilityTraits {
-//        get { .adjustable }
-//        set { }
-//    }
-//    
-//    public override var accessibilityValue: String? {
-//        get {
-//            switch sliderValue {
-//            case .single(let val):
-//                let percentage = Int((val - minimumValue) / (maximumValue - minimumValue) * 100)
-//                return "\(percentage)%"
-//            case .range(let min, let max):
-//                let minPercentage = Int((min - minimumValue) / (maximumValue - minimumValue) * 100)
-//                let maxPercentage = Int((max - minimumValue) / (maximumValue - minimumValue) * 100)
-//                return "Range: \(minPercentage)% to \(maxPercentage)%"
-//            case .marked(_, let index):
-//                if case .marked(let count) = mode {
-//                    return "Position \(index + 1) of \(count)"
-//                }
-//                return nil
-//            }
-//        }
-//        set { }
-//    }
-//    
-//    public override func accessibilityIncrement() {
-//        let step = (maximumValue - minimumValue) / 10
-//        
-//        switch mode {
-//        case .default:
-//            value = min(value + step, maximumValue)
-//        case .range:
-//            let (min, max) = rangeValues
-//            rangeValues = (min, min(max + step, maximumValue))
-//        case .marked(let count):
-//            if case .marked(_, let index) = sliderValue, index < count - 1 {
-//                let newIndex = index + 1
-//                let newValue = valueForMarkIndex(newIndex, totalMarks: count)
-//                sliderValue = .marked(value: newValue, index: newIndex)
-//            }
-//        }
-//        
-//        if configuration.hapticMode.isEnabled {
-//            feedbackGenerator?.impactOccurred()
-//        }
-//    }
-//    
-//    public override func accessibilityDecrement() {
-//        let step = (maximumValue - minimumValue) / 10
-//        
-//        switch mode {
-//        case .default:
-//            value = max(value - step, minimumValue)
-//        case .range:
-//            let (min, max) = rangeValues
-//            rangeValues = (max(min - step, minimumValue), max)
-//        case .marked(let count):
-//            if case .marked(_, let index) = sliderValue, index > 0 {
-//                let newIndex = index - 1
-//                let newValue = valueForMarkIndex(newIndex, totalMarks: count)
-//                sliderValue = .marked(value: newValue, index: newIndex)
-//            }
-//        }
-//        
-//        if configuration.hapticMode.isEnabled {
-//            feedbackGenerator?.impactOccurred()
-//        }
-//    }
 }
