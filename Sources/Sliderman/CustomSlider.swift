@@ -6,7 +6,21 @@
 //
 import UIKit
 
-/// A customizable slider control with multiple operating modes
+/// A highly customizable slider control with multiple operating modes and pre-defined styles.
+///
+/// `CustomSlider` supports three modes:
+/// - Default: Single value slider
+/// - Range: Two-thumb slider for min/max selection
+/// - Marked: Discrete positions with snap-to behavior
+///
+/// Example usage:
+/// ```swift
+/// let slider = CustomSlider()
+/// slider.setStyle(.sunset)
+/// slider.setMode(.range)
+/// slider.rangeValues = (20, 80)
+/// ```
+
 open class CustomSlider: UIControl {
     
     // MARK: - Public Properties
@@ -110,6 +124,8 @@ open class CustomSlider: UIControl {
     
     // MARK: - Initialization
     
+    /// Creates a new slider with the specified frame.
+    /// - Parameter frame: The frame rectangle for the slider.
     public override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
@@ -358,7 +374,6 @@ open class CustomSlider: UIControl {
             feedbackGenerator = nil
         }
         
-        // Update constraints
         trackHeightConstraint?.constant = configuration.trackHeight
         progressHeightConstraint?.constant = configuration.trackHeight
         thumbWidthConstraint?.constant = configuration.thumbSize
