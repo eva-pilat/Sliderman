@@ -272,33 +272,47 @@ open class CustomSlider: UIControl {
     private func setupMarks(count: Int) {
         removeMarks()
         
+        guard count > 1 else { return }
+        
         let trackWidth = bounds.width - configuration.thumbSize
-        let markSize: CGFloat = 8
+        let markSize: CGFloat = 10
         
         for i in 0..<count {
-            let markView = UIView()
-            markView.backgroundColor = configuration.progressColor?.withAlphaComponent(0.3) ?? UIColor.systemGray.withAlphaComponent(0.3)
-            markView.layer.cornerRadius = markSize / 2
-            markView.layer.borderWidth = 2
-            markView.layer.borderColor = configuration.trackColor.cgColor
-            
-            markView.translatesAutoresizingMaskIntoConstraints = false
+            let markContainer = UIView()
+            markContainer.backgroundColor = .clear
+            markContainer.translatesAutoresizingMaskIntoConstraints = false
+            insertSubview(markContainer, aboveSubview: trackView)
 
-            insertSubview(markView, belowSubview: thumbView)
+            let markInner = UIView()
+            markInner.backgroundColor = .white
+            markInner.layer.cornerRadius = (markSize - 4) / 2
+            markInner.translatesAutoresizingMaskIntoConstraints = false
+            markContainer.addSubview(markInner)
+
+            markContainer.layer.cornerRadius = markSize / 2
+            markContainer.layer.borderWidth = 2
+            markContainer.layer.borderColor = configuration.progressColor?.cgColor ?? UIColor.systemGray.cgColor
+            markContainer.backgroundColor = configuration.trackColor
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
             
             NSLayoutConstraint.activate([
-                markView.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition),
-                markView.centerYAnchor.constraint(equalTo: centerYAnchor),
-                markView.widthAnchor.constraint(equalToConstant: markSize),
-                markView.heightAnchor.constraint(equalToConstant: markSize)
+                markContainer.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition),
+                markContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
+                markContainer.widthAnchor.constraint(equalToConstant: markSize),
+                markContainer.heightAnchor.constraint(equalToConstant: markSize),
+                
+                markInner.centerXAnchor.constraint(equalTo: markContainer.centerXAnchor),
+                markInner.centerYAnchor.constraint(equalTo: markContainer.centerYAnchor),
+                markInner.widthAnchor.constraint(equalToConstant: markSize - 4),
+                markInner.heightAnchor.constraint(equalToConstant: markSize - 4)
             ])
             
-            markViews.append(markView)
+            markViews.append(markContainer)
         }
-
+        
+        bringSubviewToFront(progressView)
         bringSubviewToFront(thumbView)
         bringSubviewToFront(secondThumbView)
     }
@@ -394,13 +408,21 @@ open class CustomSlider: UIControl {
         gradientLayer?.frame = progressView.bounds
         updateThumbPositions(animated: false)
         
-        if case .marked(let count) = mode, !markViews.isEmpty {
-            let trackWidth = bounds.width - configuration.thumbSize
-            for (i, markView) in markViews.enumerated() {
-                let percentage = CGFloat(i) / CGFloat(count - 1)
-                let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
-                
-                markView.constraints.first(where: { $0.firstAttribute == .centerX })?.constant = xPosition
+        if case .marked(let count) = mode {
+            if markViews.isEmpty || markViews.count != count {
+                setupMarks(count: count)
+            } else {
+                let trackWidth = bounds.width - configuration.thumbSize
+                for (i, markView) in markViews.enumerated() {
+                    let percentage = CGFloat(i) / CGFloat(count - 1)
+                    let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
+                    
+                    if let constraint = markView.constraints.first(where: {
+                        $0.firstAttribute == .centerX
+                    }) {
+                        constraint.constant = xPosition
+                    }
+                }
             }
         }
     }
