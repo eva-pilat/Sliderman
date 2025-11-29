@@ -103,6 +103,7 @@ open class CustomSlider: UIControl {
     private var trackTrailingConstraint: NSLayoutConstraint?
     private var progressHeightConstraint: NSLayoutConstraint?
     private var progressLeadingConstraint: NSLayoutConstraint?
+    private var markCenterXConstraints: [NSLayoutConstraint] = []
     
     private var isTrackingg = false
     private var lastHapticValue: Float = 0
@@ -281,7 +282,7 @@ open class CustomSlider: UIControl {
             let markContainer = UIView()
             markContainer.backgroundColor = .clear
             markContainer.translatesAutoresizingMaskIntoConstraints = false
-            markContainer.tag = 1000 + i
+            //markContainer.tag = 1000 + i
             insertSubview(markContainer, aboveSubview: trackView)
             
             let markInner = UIView()
@@ -291,13 +292,14 @@ open class CustomSlider: UIControl {
             markContainer.addSubview(markInner)
             
             markContainer.layer.cornerRadius = markSize / 2
-            markContainer.layer.borderWidth = 2
-            markContainer.layer.borderColor = configuration.progressColor?.cgColor ?? UIColor.systemGray.cgColor
+//            markContainer.layer.borderWidth = 2
+//            markContainer.layer.borderColor = configuration.progressColor?.cgColor ?? UIColor.systemGray.cgColor
             markContainer.backgroundColor = configuration.trackColor
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
             let centerXConstraint = markContainer.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition)
+            markCenterXConstraints.append(centerXConstraint)
             
             NSLayoutConstraint.activate([
                 centerXConstraint,
@@ -323,6 +325,7 @@ open class CustomSlider: UIControl {
     private func removeMarks() {
         markViews.forEach { $0.removeFromSuperview() }
         markViews.removeAll()
+        markCenterXConstraints.removeAll()
     }
     
     private func applyConfiguration() {
@@ -411,21 +414,13 @@ open class CustomSlider: UIControl {
         gradientLayer?.frame = progressView.bounds
         updateThumbPositions(animated: false)
         
-        if case .marked(let count) = mode, markViews.count == count {
+        if case .marked(let count) = mode, markCenterXConstraints.count == count {
             let trackWidth = bounds.width - configuration.thumbSize
-            
-            for (i, markView) in markViews.enumerated() {
+                
+            for (i, constraint) in markCenterXConstraints.enumerated() {
                 let percentage = CGFloat(i) / CGFloat(count - 1)
                 let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
-
-                for constraint in constraints {
-                    if constraint.firstItem as? UIView == markView &&
-                        constraint.firstAttribute == .centerX &&
-                        constraint.secondItem as? UIView == self {
-                        constraint.constant = xPosition
-                        break
-                    }
-                }
+                constraint.constant = xPosition
             }
         }
     }
