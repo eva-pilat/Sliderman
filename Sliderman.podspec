@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Sliderman'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'A beautiful, customizable slider for iOS'
   s.description      = <<-DESC
   Sliderman is a highly customizable UIControl with multiple styles and modes.
