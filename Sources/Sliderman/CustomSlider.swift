@@ -277,10 +277,14 @@ open class CustomSlider: UIControl {
         
         for i in 0..<count {
             let markView = UIView()
-            markView.backgroundColor = configuration.trackColor.withAlphaComponent(0.5)
+            markView.backgroundColor = configuration.progressColor?.withAlphaComponent(0.3) ?? UIColor.systemGray.withAlphaComponent(0.3)
             markView.layer.cornerRadius = markSize / 2
+            markView.layer.borderWidth = 2
+            markView.layer.borderColor = configuration.trackColor.cgColor
+            
             markView.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(markView)
+
+            insertSubview(markView, belowSubview: thumbView)
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
