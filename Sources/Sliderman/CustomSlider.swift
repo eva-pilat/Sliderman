@@ -292,7 +292,7 @@ open class CustomSlider: UIControl {
         guard count > 1 else { return }
 
         let trackWidth = bounds.width - configuration.thumbSize
-        let markSize: CGFloat = 10
+        let markSize: CGFloat = 8
 
         for i in 0..<count {
             let markContainer = UIView()
