@@ -282,7 +282,6 @@ open class CustomSlider: UIControl {
             let markContainer = UIView()
             markContainer.backgroundColor = .clear
             markContainer.translatesAutoresizingMaskIntoConstraints = false
-            //markContainer.tag = 1000 + i
             insertSubview(markContainer, aboveSubview: trackView)
             
             let markInner = UIView()
@@ -292,9 +291,7 @@ open class CustomSlider: UIControl {
             markContainer.addSubview(markInner)
             
             markContainer.layer.cornerRadius = markSize / 2
-//            markContainer.layer.borderWidth = 2
-//            markContainer.layer.borderColor = configuration.progressColor?.cgColor ?? UIColor.systemGray.cgColor
-            markContainer.backgroundColor = configuration.trackColor
+            markContainer.backgroundColor = markInner.backgroundColor
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
@@ -332,6 +329,7 @@ open class CustomSlider: UIControl {
         // Track
         trackView.backgroundColor = configuration.trackColor
         trackView.layer.cornerRadius = configuration.trackHeight / 2
+        trackView.clipsToBounds = true
         
         // Progress
         if let gradientColors = configuration.progressGradient, gradientColors.count > 1 {
