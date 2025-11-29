@@ -291,7 +291,7 @@ open class CustomSlider: UIControl {
             markContainer.addSubview(markInner)
             
             markContainer.layer.cornerRadius = markSize / 2
-            markContainer.backgroundColor = markInner.backgroundColor
+            markContainer.backgroundColor = .white
             
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
