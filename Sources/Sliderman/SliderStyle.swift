@@ -9,44 +9,44 @@ import UIKit
 
 /// Pre-defined slider styles for quick customization
 public enum SliderStyle {
-    
+
     /// Default iOS-style slider
     case `default`
-    
+
     /// Native iOS slider appearance
     case iOS
-    
+
     /// Vibrant pink style
     case vibrant
-    
+
     /// Minimal black and white
     case minimal
-    
+
     /// Colorful neon gradient
     case neon
-    
+
     /// Sunset gradient (yellow to red)
     case sunset
-    
+
     /// Ocean gradient (cyan to indigo)
     case ocean
-    
+
     /// Purple gradient
     case grape
-    
+
     /// Mint to teal gradient
     case mint
-    
+
     /// Custom configuration
     case custom(SliderConfiguration)
-    
+
     // MARK: - Configuration
-    
+
     public var configuration: SliderConfiguration {
         switch self {
         case .default:
             return SliderConfiguration()
-            
+
         case .iOS:
             var config = SliderConfiguration()
             config.trackHeight = 4
@@ -57,7 +57,7 @@ public enum SliderStyle {
             config.thumbShadow = true
             config.hapticMode = .light
             return config
-        
+
         case .vibrant:
             var config = SliderConfiguration()
             config.trackHeight = 12
@@ -69,7 +69,7 @@ public enum SliderStyle {
             config.hapticMode = .medium
             config.animationDuration = 0.25
             return config
-            
+
         case .minimal:
             var config = SliderConfiguration()
             config.trackHeight = 2
@@ -81,7 +81,7 @@ public enum SliderStyle {
             config.hapticMode = .disabled
             config.animationDuration = 0.15
             return config
-            
+
         case .neon:
             var config = SliderConfiguration()
             config.trackHeight = 12
@@ -97,7 +97,7 @@ public enum SliderStyle {
             config.thumbGlow = true
             config.hapticMode = .heavy
             return config
-            
+
         case .sunset:
             var config = SliderConfiguration()
             config.trackHeight = 12
@@ -112,7 +112,7 @@ public enum SliderStyle {
             config.thumbShadow = true
             config.hapticMode = .mediumWithSteps
             return config
-            
+
         case .ocean:
             var config = SliderConfiguration()
             config.trackHeight = 12
@@ -127,7 +127,7 @@ public enum SliderStyle {
             config.thumbShadow = true
             config.hapticMode = .lightContinuous
             return config
-            
+
         case .grape:
             var config = SliderConfiguration()
             config.trackHeight = 12
@@ -141,7 +141,7 @@ public enum SliderStyle {
             config.thumbShadow = true
             config.hapticMode = .medium
             return config
-            
+
         case .mint:
             var config = SliderConfiguration()
             config.trackHeight = 20
@@ -155,7 +155,7 @@ public enum SliderStyle {
             config.thumbShadow = true
             config.hapticMode = .light
             return config
-            
+
         case .custom(let config):
             return config
         }

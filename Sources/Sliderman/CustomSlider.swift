@@ -22,19 +22,19 @@ import UIKit
 /// ```
 
 open class CustomSlider: UIControl {
-    
+
     // MARK: - Public Properties
-    
+
     /// Minimum value (default: 0)
     public var minimumValue: Float = 0 {
         didSet { updateValues() }
     }
-    
+
     /// Maximum value (default: 1)
     public var maximumValue: Float = 1 {
         didSet { updateValues() }
     }
-    
+
     /// Current slider value (type depends on mode)
     public var sliderValue: SliderValue = .single(0.5) {
         didSet {
@@ -42,7 +42,7 @@ open class CustomSlider: UIControl {
             sendActions(for: .valueChanged)
         }
     }
-    
+
     /// Operating mode of the slider
     public var mode: SliderMode = .default {
         didSet {
@@ -51,14 +51,14 @@ open class CustomSlider: UIControl {
             }
         }
     }
-    
+
     /// Configuration for customizing appearance and behavior
     public var configuration: SliderConfiguration = SliderConfiguration() {
         didSet { applyConfiguration() }
     }
-    
+
     // MARK: - Convenience Properties (for backward compatibility)
-    
+
     /// Single value - works only in .default and .marked modes
     public var value: Float {
         get {
@@ -75,7 +75,7 @@ open class CustomSlider: UIControl {
             }
         }
     }
-    
+
     /// Range values - works only in .range mode
     public var rangeValues: (min: Float, max: Float) {
         get {
@@ -88,23 +88,23 @@ open class CustomSlider: UIControl {
             sliderValue = .range(min: min, max: max)
         }
     }
-    
+
     // MARK: - Private Properties
-    
+
     private let trackView = UIView()
     private let progressView = UIView()
     private var gradientLayer: CAGradientLayer?
-    
+
     // Thumbs
     private let thumbView = UIView()
     private let secondThumbView = UIView() // For range mode
     private var activeThumb: UIView?
-    
+
     // Marks
     private var markViews: [UIView] = []
-    
+
     private var feedbackGenerator: UIImpactFeedbackGenerator?
-    
+
     // Constraints
     private var thumbCenterXConstraint: NSLayoutConstraint?
     private var secondThumbCenterXConstraint: NSLayoutConstraint?
@@ -118,12 +118,12 @@ open class CustomSlider: UIControl {
     private var progressHeightConstraint: NSLayoutConstraint?
     private var progressLeadingConstraint: NSLayoutConstraint?
     private var markCenterXConstraints: [NSLayoutConstraint] = []
-    
+
     private var isTrackingg = false
     private var lastHapticValue: Float = 0
-    
+
     // MARK: - Initialization
-    
+
     /// Creates a new slider with the specified frame.
     /// - Parameter frame: The frame rectangle for the slider.
     public override init(frame: CGRect) {
@@ -132,115 +132,115 @@ open class CustomSlider: UIControl {
         setupGestures()
         applyConfiguration()
     }
-    
+
     required public init?(coder: NSCoder) {
         super.init(coder: coder)
         setupViews()
         setupGestures()
         applyConfiguration()
     }
-    
+
     // MARK: - Public Methods
-    
+
     /// Apply a pre-defined style to the slider
     public func setStyle(_ style: SliderStyle) {
         self.configuration = style.configuration
     }
-    
+
     /// Change the operating mode of the slider
     public func setMode(_ mode: SliderMode) {
         self.mode = mode
     }
-    
+
     // MARK: - Setup
-    
+
     private func setupViews() {
         // Track
         trackView.translatesAutoresizingMaskIntoConstraints = false
         trackView.isUserInteractionEnabled = false
         addSubview(trackView)
-        
+
         // Progress
         progressView.translatesAutoresizingMaskIntoConstraints = false
         progressView.isUserInteractionEnabled = false
         addSubview(progressView)
-        
+
         // Primary thumb
         thumbView.translatesAutoresizingMaskIntoConstraints = false
         thumbView.isUserInteractionEnabled = false
         addSubview(thumbView)
-        
+
         // Secondary thumb (hidden by default)
         secondThumbView.translatesAutoresizingMaskIntoConstraints = false
         secondThumbView.isUserInteractionEnabled = false
         secondThumbView.isHidden = true
         addSubview(secondThumbView)
-        
+
         setupConstraints()
     }
-    
+
     private func setupConstraints() {
         let trackHeight = configuration.trackHeight
         let thumbSize = configuration.thumbSize
-        
+
         trackLeadingConstraint = trackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: thumbSize / 2)
         trackTrailingConstraint = trackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -thumbSize / 2)
         trackHeightConstraint = trackView.heightAnchor.constraint(equalToConstant: trackHeight)
-        
+
         progressHeightConstraint = progressView.heightAnchor.constraint(equalToConstant: trackHeight)
         progressLeadingConstraint = progressView.leadingAnchor.constraint(equalTo: trackView.leadingAnchor)
-        
+
         thumbWidthConstraint = thumbView.widthAnchor.constraint(equalToConstant: thumbSize)
         thumbHeightConstraint = thumbView.heightAnchor.constraint(equalToConstant: thumbSize)
-        
+
         secondThumbWidthConstraint = secondThumbView.widthAnchor.constraint(equalToConstant: thumbSize)
         secondThumbHeightConstraint = secondThumbView.heightAnchor.constraint(equalToConstant: thumbSize)
-        
+
         NSLayoutConstraint.activate([
             // Track
             trackLeadingConstraint!,
             trackTrailingConstraint!,
             trackView.centerYAnchor.constraint(equalTo: centerYAnchor),
             trackHeightConstraint!,
-            
+
             // Progress
             progressLeadingConstraint!,
             progressView.centerYAnchor.constraint(equalTo: trackView.centerYAnchor),
             progressHeightConstraint!,
             progressView.trailingAnchor.constraint(equalTo: thumbView.centerXAnchor),
-            
+
             // Primary thumb
             thumbView.centerYAnchor.constraint(equalTo: centerYAnchor),
             thumbWidthConstraint!,
             thumbHeightConstraint!,
-            
+
             // Secondary thumb
             secondThumbView.centerYAnchor.constraint(equalTo: centerYAnchor),
             secondThumbWidthConstraint!,
             secondThumbHeightConstraint!
         ])
-        
+
         thumbCenterXConstraint = thumbView.centerXAnchor.constraint(
             equalTo: leadingAnchor,
             constant: thumbSize / 2
         )
         thumbCenterXConstraint?.isActive = true
-        
+
         secondThumbCenterXConstraint = secondThumbView.centerXAnchor.constraint(
             equalTo: leadingAnchor,
             constant: thumbSize / 2
         )
         secondThumbCenterXConstraint?.isActive = true
     }
-    
+
     private func setupGestures() {
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         addGestureRecognizer(panGesture)
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         addGestureRecognizer(tapGesture)
     }
-    
+
     private func setupForMode() {
         switch mode {
         case .default:
@@ -249,31 +249,31 @@ open class CustomSlider: UIControl {
             progressLeadingConstraint?.isActive = false
             progressLeadingConstraint = progressView.leadingAnchor.constraint(equalTo: trackView.leadingAnchor)
             progressLeadingConstraint?.isActive = true
-            
+
             if case .single = sliderValue {
             } else {
                 sliderValue = .single(0.5)
             }
-            
+
         case .range:
             secondThumbView.isHidden = false
             removeMarks()
             progressLeadingConstraint?.isActive = false
             progressLeadingConstraint = progressView.leadingAnchor.constraint(equalTo: secondThumbView.centerXAnchor)
             progressLeadingConstraint?.isActive = true
-            
+
             if case .range = sliderValue {
             } else {
                 sliderValue = .range(min: 0.3, max: 0.7)
             }
-            
+
         case .marked(let count):
             secondThumbView.isHidden = true
             setupMarks(count: count)
             progressLeadingConstraint?.isActive = false
             progressLeadingConstraint = progressView.leadingAnchor.constraint(equalTo: trackView.leadingAnchor)
             progressLeadingConstraint?.isActive = true
-            
+
             if case .marked = sliderValue {
             } else {
                 let middleIndex = count / 2
@@ -281,72 +281,71 @@ open class CustomSlider: UIControl {
                 sliderValue = .marked(value: middleValue, index: middleIndex)
             }
         }
-        
+
         applyConfiguration()
         updateThumbPositions(animated: false)
     }
-    
+
     private func setupMarks(count: Int) {
         removeMarks()
-        
+
         guard count > 1 else { return }
-        
+
         let trackWidth = bounds.width - configuration.thumbSize
         let markSize: CGFloat = 10
-        
+
         for i in 0..<count {
             let markContainer = UIView()
             markContainer.backgroundColor = .clear
             markContainer.translatesAutoresizingMaskIntoConstraints = false
             insertSubview(markContainer, aboveSubview: trackView)
-            
+
             let markInner = UIView()
             markInner.backgroundColor = .white
             markInner.layer.cornerRadius = (markSize - 4) / 2
             markInner.translatesAutoresizingMaskIntoConstraints = false
             markContainer.addSubview(markInner)
-            
+
             markContainer.layer.cornerRadius = markSize / 2
             markContainer.backgroundColor = .white
-            
+
             let percentage = CGFloat(i) / CGFloat(count - 1)
             let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
             let centerXConstraint = markContainer.centerXAnchor.constraint(equalTo: leadingAnchor, constant: xPosition)
             markCenterXConstraints.append(centerXConstraint)
-            
+
             NSLayoutConstraint.activate([
                 centerXConstraint,
                 markContainer.centerYAnchor.constraint(equalTo: centerYAnchor),
                 markContainer.widthAnchor.constraint(equalToConstant: markSize),
                 markContainer.heightAnchor.constraint(equalToConstant: markSize),
-                
+
                 markInner.centerXAnchor.constraint(equalTo: markContainer.centerXAnchor),
                 markInner.centerYAnchor.constraint(equalTo: markContainer.centerYAnchor),
                 markInner.widthAnchor.constraint(equalToConstant: markSize - 4),
                 markInner.heightAnchor.constraint(equalToConstant: markSize - 4)
             ])
-            
+
             markViews.append(markContainer)
         }
-        
+
         bringSubviewToFront(progressView)
         bringSubviewToFront(thumbView)
         bringSubviewToFront(secondThumbView)
     }
 
-    
     private func removeMarks() {
         markViews.forEach { $0.removeFromSuperview() }
         markViews.removeAll()
         markCenterXConstraints.removeAll()
     }
-    
+
     private func applyConfiguration() {
         // Track
         trackView.backgroundColor = configuration.trackColor
         trackView.layer.cornerRadius = configuration.trackHeight / 2
         trackView.clipsToBounds = true
-        
+
         // Progress
         if let gradientColors = configuration.progressGradient, gradientColors.count > 1 {
             setupGradient(colors: gradientColors)
@@ -357,7 +356,7 @@ open class CustomSlider: UIControl {
         }
         progressView.layer.cornerRadius = configuration.trackHeight / 2
         progressView.clipsToBounds = true
-        
+
         // Thumbs
         applyThumbStyle(thumbView)
         applyThumbStyle(secondThumbView)
@@ -365,7 +364,7 @@ open class CustomSlider: UIControl {
         markViews.forEach { markView in
             markView.backgroundColor = configuration.trackColor.withAlphaComponent(0.5)
         }
-        
+
         // Haptic
         if configuration.hapticMode.isEnabled {
             feedbackGenerator = UIImpactFeedbackGenerator(style: configuration.hapticMode.feedbackStyle)
@@ -373,7 +372,7 @@ open class CustomSlider: UIControl {
         } else {
             feedbackGenerator = nil
         }
-        
+
         trackHeightConstraint?.constant = configuration.trackHeight
         progressHeightConstraint?.constant = configuration.trackHeight
         thumbWidthConstraint?.constant = configuration.thumbSize
@@ -382,16 +381,16 @@ open class CustomSlider: UIControl {
         secondThumbHeightConstraint?.constant = configuration.thumbSize
         trackLeadingConstraint?.constant = configuration.thumbSize / 2
         trackTrailingConstraint?.constant = -configuration.thumbSize / 2
-        
+
         setNeedsLayout()
         layoutIfNeeded()
         updateThumbPositions(animated: false)
     }
-    
+
     private func applyThumbStyle(_ thumb: UIView) {
         thumb.backgroundColor = configuration.thumbColor
         thumb.layer.cornerRadius = configuration.thumbSize / 2
-        
+
         if configuration.thumbShadow {
             thumb.layer.shadowColor = UIColor.black.cgColor
             thumb.layer.shadowOpacity = 0.2
@@ -400,36 +399,36 @@ open class CustomSlider: UIControl {
         } else {
             thumb.layer.shadowOpacity = 0
         }
-        
+
         if configuration.thumbGlow {
             thumb.layer.shadowColor = (configuration.progressColor ?? .systemBlue).cgColor
             thumb.layer.shadowOpacity = 0.6
             thumb.layer.shadowRadius = 8
         }
     }
-    
+
     private func setupGradient(colors: [UIColor]) {
         gradientLayer?.removeFromSuperlayer()
-        
+
         let gradient = CAGradientLayer()
         gradient.colors = colors.map { $0.cgColor }
         gradient.startPoint = CGPoint(x: 0, y: 0.5)
         gradient.endPoint = CGPoint(x: 1, y: 0.5)
         gradient.cornerRadius = configuration.trackHeight / 2
-        
+
         progressView.backgroundColor = .clear
         progressView.layer.insertSublayer(gradient, at: 0)
         gradientLayer = gradient
     }
-    
+
     public override func layoutSubviews() {
         super.layoutSubviews()
         gradientLayer?.frame = progressView.bounds
         updateThumbPositions(animated: false)
-        
+
         if case .marked(let count) = mode, markCenterXConstraints.count == count {
             let trackWidth = bounds.width - configuration.thumbSize
-                
+
             for (i, constraint) in markCenterXConstraints.enumerated() {
                 let percentage = CGFloat(i) / CGFloat(count - 1)
                 let xPosition = (trackWidth * percentage) + configuration.thumbSize / 2
@@ -437,9 +436,9 @@ open class CustomSlider: UIControl {
             }
         }
     }
-    
+
     // MARK: - Value Updates
-    
+
     private func updateValues() {
         switch sliderValue {
         case .single(let val):
@@ -453,20 +452,20 @@ open class CustomSlider: UIControl {
             }
         }
     }
-    
+
     private func updateThumbPositions(animated: Bool) {
         switch sliderValue {
         case .single(let val):
             updateThumbPosition(val, constraint: thumbCenterXConstraint, animated: animated)
-            
+
         case .range(let min, let max):
             updateThumbPosition(min, constraint: secondThumbCenterXConstraint, animated: animated)
             updateThumbPosition(max, constraint: thumbCenterXConstraint, animated: animated)
-            
+
         case .marked(let val, _):
             updateThumbPosition(val, constraint: thumbCenterXConstraint, animated: animated)
         }
-        
+
         if animated {
             UIView.animate(
                 withDuration: configuration.animationDuration,
@@ -480,19 +479,19 @@ open class CustomSlider: UIControl {
             layoutIfNeeded()
         }
     }
-    
+
     private func updateThumbPosition(_ value: Float, constraint: NSLayoutConstraint?, animated: Bool) {
         let percentage = CGFloat((value - minimumValue) / (maximumValue - minimumValue))
         let trackWidth = bounds.width - configuration.thumbSize
         let newConstant = (trackWidth * percentage) + configuration.thumbSize / 2
         constraint?.constant = newConstant
     }
-    
+
     // MARK: - Gesture Handlers
-    
+
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         let location = gesture.location(in: self)
-        
+
         switch gesture.state {
         case .began:
             if case .range = mode {
@@ -500,23 +499,23 @@ open class CustomSlider: UIControl {
             } else {
                 activeThumb = thumbView
             }
-            
+
             isTrackingg = true
-            
+
             if configuration.hapticMode.isEnabled {
                 feedbackGenerator?.impactOccurred()
             }
-            
+
             sendActions(for: .touchDown)
             animateThumb(activeThumb!, scale: 1.2)
-            
+
         case .changed:
             let oldValue = getCurrentValueForActiveThumb()
             updateValueForLocation(location)
             let newValue = getCurrentValueForActiveThumb()
-            
+
             handleContinuousHaptic(oldValue: oldValue, newValue: newValue)
-            
+
         case .ended, .cancelled:
             isTrackingg = false
             sendActions(for: .touchUpInside)
@@ -524,36 +523,36 @@ open class CustomSlider: UIControl {
                 animateThumb(thumb, scale: 1.0)
             }
             activeThumb = nil
-            
+
         default:
             break
         }
     }
-    
+
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
         let location = gesture.location(in: self)
-        
+
         if case .range = mode {
             activeThumb = findClosestThumb(to: location)
         } else {
             activeThumb = thumbView
         }
-        
+
         updateValueForLocation(location, animated: true)
-        
+
         if configuration.hapticMode.isEnabled {
             feedbackGenerator?.impactOccurred()
         }
-        
+
         activeThumb = nil
     }
-    
+
     private func findClosestThumb(to location: CGPoint) -> UIView {
         let distanceToFirst = abs(location.x - thumbView.center.x)
         let distanceToSecond = abs(location.x - secondThumbView.center.x)
         return distanceToFirst < distanceToSecond ? thumbView : secondThumbView
     }
-    
+
     private func getCurrentValueForActiveThumb() -> Float {
         switch sliderValue {
         case .single(let val):
@@ -564,17 +563,17 @@ open class CustomSlider: UIControl {
             return val
         }
     }
-    
+
     private func updateValueForLocation(_ location: CGPoint, animated: Bool = false) {
         let trackWidth = bounds.width - configuration.thumbSize
         let adjustedX = location.x - configuration.thumbSize / 2
         let percentage = Float(max(0, min(adjustedX / trackWidth, 1)))
         let newValue = minimumValue + (maximumValue - minimumValue) * percentage
-        
+
         switch mode {
         case .default:
             sliderValue = .single(clampValue(newValue))
-            
+
         case .range:
             if activeThumb == thumbView {
                 let currentMin = rangeValues.min
@@ -585,51 +584,51 @@ open class CustomSlider: UIControl {
                 let clampedMin = min(currentMax, clampValue(newValue))
                 sliderValue = .range(min: clampedMin, max: currentMax)
             }
-            
+
         case .marked(let count):
             let markIndex = findNearestMarkIndex(for: newValue, totalMarks: count)
             let markValue = valueForMarkIndex(markIndex, totalMarks: count)
             sliderValue = .marked(value: markValue, index: markIndex)
-            
+
             if configuration.hapticMode.isEnabled {
                 feedbackGenerator?.impactOccurred(intensity: 0.7)
             }
         }
-        
+
         updateThumbPositions(animated: animated)
     }
-    
+
     // MARK: - Marked Mode Helpers
-    
+
     private func findNearestMarkIndex(for value: Float, totalMarks: Int) -> Int {
         let normalizedValue = (value - minimumValue) / (maximumValue - minimumValue)
         let index = Int(round(normalizedValue * Float(totalMarks - 1)))
         return max(0, min(index, totalMarks - 1))
     }
-    
+
     private func valueForMarkIndex(_ index: Int, totalMarks: Int) -> Float {
         let percentage = Float(index) / Float(totalMarks - 1)
         return minimumValue + (maximumValue - minimumValue) * percentage
     }
-    
+
     // MARK: - Helpers
-    
+
     private func clampValue(_ value: Float) -> Float {
         return min(max(value, minimumValue), maximumValue)
     }
-    
+
     private func handleContinuousHaptic(oldValue: Float, newValue: Float) {
         let mode = configuration.hapticMode
         guard mode.isContinuous else { return }
-        
+
         let normalizedOld = (oldValue - minimumValue) / (maximumValue - minimumValue)
         let normalizedNew = (newValue - minimumValue) / (maximumValue - minimumValue)
-        
+
         if floor(normalizedOld / mode.hapticStep) != floor(normalizedNew / mode.hapticStep) {
             feedbackGenerator?.impactOccurred(intensity: 0.5)
         }
     }
-    
+
     private func animateThumb(_ thumb: UIView, scale: CGFloat) {
         UIView.animate(
             withDuration: 0.15,
